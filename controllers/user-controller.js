@@ -1,5 +1,6 @@
 const User = require('../model/user-model');
 
+// git all the user
 const getAllUsers = async (req, res) => {
     try {
         const users = await User.find();
@@ -12,6 +13,7 @@ const getAllUsers = async (req, res) => {
     }
 }
 
+// git user by id
 const getUserById = async (req, res) => {
     const { userId } = req.params;
 
@@ -28,8 +30,9 @@ const getUserById = async (req, res) => {
     }
 }
 
+// update the user profile
 const updateUser = async (req, res) => {
-    // id from auth
+    // id from user auth
     const  userIdFormAuth = req.user.id;
     const { username, firstName, middleName, lastName, email, gender, phoneNumber, dateOfBirth, bio, userStatus } = req.body;
     const { userId } = req.params;

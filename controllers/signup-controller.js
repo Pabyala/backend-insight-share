@@ -1,6 +1,7 @@
 const User = require('../model/user-model');
 const bcrypt = require('bcrypt');
 
+// singup new user
 const signupNewUser = async (req, res) => {
     const { username, firstName, middleName, lastName, password, email, gender, phoneNumber, dateOfBirth } = req.body;
 

@@ -2,7 +2,7 @@ const bcrypt = require('bcrypt');
 const User = require('../model/user-model');
 const jwt = require('jsonwebtoken');
 
-
+// singinuser authentication 
 const signinUser = async (req, res) => {
     const { username, password } = req.body;
 
@@ -17,7 +17,7 @@ const signinUser = async (req, res) => {
         const accessToken = jwt.sign(
             { "id": foundUser._id, "username": foundUser.username },
             process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: '30s' } // 10m to 15m
+            { expiresIn: '30s' } // for testing purpose only the 30s. i will change that to 10m to 15m
         );
         const refreshToken = jwt.sign(
             { "id": foundUser._id, "username": foundUser.username },
@@ -27,7 +27,6 @@ const signinUser = async (req, res) => {
         // saving refreshToken with current user
         foundUser.refreshToken = refreshToken;
         await foundUser.save();
-        // const result = await foundUser.save();
         // console.log("Auth: ", result)
 
         // creates secure cookie with refresh token
@@ -38,7 +37,6 @@ const signinUser = async (req, res) => {
             maxAge: 24 * 60 * 60 * 1000 
         });
 
-        // res.status(201).json({ message: 'Sing in successfully.', accessToken })
         res.json({ accessToken });
     } else {
         return res.status(401).json({ message: 'Incorrect password.' });

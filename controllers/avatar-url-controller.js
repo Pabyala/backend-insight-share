@@ -13,8 +13,11 @@ const uploadAvatarUlr = async (req, res) => {
         }
 
         const result = await cloudinary.uploader.upload(image, {
-            upload_preset: 'unsigned_upload',  // Preset for unsigned uploads if required
-            public_id: `${user.username}_avatar`,  // Make sure username is defined
+            // preset for unsigned uploads if required
+            upload_preset: 'unsigned_upload',  
+            // avatar file name
+            public_id: `${user.username}_avatar`, 
+            // specific image format
             allowed_formats: ['png', 'jpg', 'jpeg', 'svg']
         });
 
