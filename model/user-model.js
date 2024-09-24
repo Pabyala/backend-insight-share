@@ -14,6 +14,7 @@ const userSchema = new Schema({
     bio: { type: String },
     userStatus: { type: String },
     avatarUrl: { type: String, default: '' },
+    coverPhotoUrl: { type: String, default: '' },
     refreshToken: { type: String }
     }, { 
         timestamps: true 
