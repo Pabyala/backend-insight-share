@@ -15,6 +15,17 @@ const userSchema = new Schema({
     userStatus: { type: String },
     avatarUrl: { type: String, default: '' },
     coverPhotoUrl: { type: String, default: '' },
+    livesIn: { type: String },
+    studyAt: { type: String },
+    workAt: {
+        companyName: { type: String },
+        position: { type: String },
+        cityOrTown: { type: String }
+    },
+    socials: [{
+        platFormName: { type: String },
+        url: { type: String }
+    }],
     refreshToken: { type: String }
     }, { 
         timestamps: true 
