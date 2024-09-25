@@ -11,20 +11,20 @@ const userSchema = new Schema({
     gender: { type: String, required: true },
     phoneNumber: { type: String, required: true, unique: true },
     dateOfBirth: { type: String, required: true },
-    bio: { type: String },
-    userStatus: { type: String },
+    bio: { type: String, default: '', maxlength: 84 },
+    userStatus: { type: String, default: '' },
     avatarUrl: { type: String, default: '' },
     coverPhotoUrl: { type: String, default: '' },
-    livesIn: { type: String },
-    studyAt: { type: String },
+    livesIn: { type: String, default: '' },
+    studyAt: { type: String, default: '' },
     workAt: {
-        companyName: { type: String },
-        position: { type: String },
-        cityOrTown: { type: String }
+        companyName: { type: String, default: '' },
+        position: { type: String, default: '' },
+        cityOrTown: { type: String, default: '' }
     },
     socials: [{
-        platFormName: { type: String },
-        url: { type: String }
+        platFormName: { type: String, default: '' },
+        url: { type: String, default: '' }
     }],
     refreshToken: { type: String }
     }, { 
