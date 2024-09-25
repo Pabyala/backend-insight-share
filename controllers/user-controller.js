@@ -161,12 +161,16 @@ const updateUserBday = async (req, res) => {
 }
 
 // update the user bio
-const updateUserBio = async (req, res) => {
+const userBio = async (req, res) => {
     // id from user auth
     const  userIdFormAuth = req.user.id;
     const { bio } = req.body;
 
     if (!userIdFormAuth) return res.status(400).json({ message: 'You are not authorized to update this user.' });
+
+    if (bio !== undefined && bio.length > 84) {
+        return res.status(400).json({ message: 'Bio cannot exceed 84 characters' });
+    }
 
     try {
         const user = await User.findById(userIdFormAuth).exec();
@@ -174,18 +178,22 @@ const updateUserBio = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
         
-        if (bio !== undefined) user.bio = bio; 
+        if (bio) user.bio = bio; 
 
         await user.save();
         res.json({ message: 'Updated successfully' });
 
     } catch (error) {
+
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ message: error.message });
+        }
         res.status(500).json({ message: error.message });
     }
 }
 
 // update the user status
-const updateUserStatus = async (req, res) => {
+const userStatus = async (req, res) => {
     // id from user auth
     const  userIdFormAuth = req.user.id;
     const { userStatus } = req.body;
@@ -208,7 +216,73 @@ const updateUserStatus = async (req, res) => {
     }
 }
 
-module.exports = { getAllUsers, getUserById, updateUser, updateUserName, updateUserEmailPhoneNum, updateUserBday, updateUserBio, updateUserStatus };
+// update the user social media
+const userSocials = async (req, res) => {
+    // id from user auth
+    const  userIdFormAuth = req.user.id;
+    const { platFormName, url } = req.body;
+
+    try {
+        const user = await User.findById(userIdFormAuth).exec();
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        user.socials.push({ platFormName, url });
+
+        await user.save();
+        res.json({ message: 'Socials added successfully', socials: user.socials });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+// user livesIn
+const userLivesIn = async (req, res) => {
+    // id from user auth
+    const  userIdFormAuth = req.user.id;
+    const { livesIn } = req.body;
+
+    try {
+        const user = await User.findById(userIdFormAuth).exec();
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (livesIn) user.livesIn = livesIn; 
+
+        await user.save();
+        res.json({ message: 'Socials added successfully', livesIn: user.livesIn });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+// user livesIn
+const userStudyAt = async (req, res) => {
+    // id from user auth
+    const  userIdFormAuth = req.user.id;
+    const { livesIn } = req.body;
+
+    try {
+        const user = await User.findById(userIdFormAuth).exec();
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (livesIn) user.livesIn = livesIn; 
+
+        await user.save();
+        res.json({ message: 'Socials added successfully', livesIn: user.livesIn });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+module.exports = { getAllUsers, getUserById, updateUser, updateUserName, updateUserEmailPhoneNum, updateUserBday, userBio, userStatus, userSocials, userLivesIn, userStudyAt };
 
 
 
