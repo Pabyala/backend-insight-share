@@ -6,23 +6,21 @@ const app = express();
 const connectDB = require('./config/database-con');
 const corsOptions = require('./config/cors-options');
 const verifyJWT = require('./middleware/verify-jwt');
+const cookieParser = require('cookie-parser');
+const PORT = process.env.PORT;
 
 // connect to db
 connectDB();
 
 app.use(express.json());
 app.use(cors(corsOptions));
+app.use(cookieParser())
 
-// .env
-const PORT = process.env.PORT;
-
-app.get('/', (req, res) => {
-  res.send('Hello, World, nice!!');
-});
-
-app.use('/v1/signup', require('./routes/register'));
+app.use('/v2/signup', require('./routes/register'));
 app.use('/v1/auth', require('./routes/auth'));
+app.use('/refresh', require('./routes/refresh'));
 
+app.use(verifyJWT);
 app.use('/v1/post', require('./routes/api/posts'));
 app.use('/v1/', require('./routes/api/users'));
 app.use('/v1/profile/', require('./routes/api/password'));

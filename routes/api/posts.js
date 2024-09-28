@@ -3,10 +3,10 @@ const { addPost, getAllPosts, getAllPostsByUser, updatePost, deletePost } = requ
 const router = Router();
 const verifyJWT = require('../../middleware/verify-jwt');
 
-router.put('/update-post/:postId', verifyJWT, updatePost);
-router.get('/all-post', verifyJWT, getAllPosts);
-router.get('/your-post/:userId', verifyJWT, getAllPostsByUser);
-router.post('/add-post', verifyJWT, addPost);
-router.delete('/delete-post/:postId', verifyJWT, deletePost);
+router.put('/update-post/:postId', updatePost);
+router.get('/all-post', getAllPosts);
+router.get('/your-post/:userId', getAllPostsByUser);
+router.post('/add-post', addPost);
+router.delete('/delete-post/:postId', deletePost);
 
 module.exports = router;
