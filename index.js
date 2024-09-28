@@ -19,6 +19,7 @@ app.use(cookieParser())
 app.use('/v2/signup', require('./routes/register'));
 app.use('/v1/auth', require('./routes/auth'));
 app.use('/refresh', require('./routes/refresh'));
+app.use('/logout', require('./routes/logout'));
 
 app.use(verifyJWT);
 app.use('/v1/post', require('./routes/api/posts'));
