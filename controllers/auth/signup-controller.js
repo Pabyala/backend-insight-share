@@ -1,4 +1,4 @@
-const User = require('../model/user-model');
+const Users = require('../../model/user-model');
 const bcrypt = require('bcrypt');
 
 // singup new user
@@ -7,15 +7,15 @@ const signupNewUser = async (req, res) => {
 
     if(!username || !firstName || !middleName || !lastName || !password || !email || !gender || !phoneNumber || !dateOfBirth) return res.status(400).json({ message: 'All fields are required.'})
     
-    const emailDuplicate = await User.findOne({ email }).exec();
-    const phoneNumDuplicate = await User.findOne({ phoneNumber }).exec();
+    const emailDuplicate = await Users.findOne({ email }).exec();
+    const phoneNumDuplicate = await Users.findOne({ phoneNumber }).exec();
 
     if (emailDuplicate) return res.status(400).json({ message: 'Email already exist.' });
     if (phoneNumDuplicate) return res.status(400).json({ message: 'Phone number already exist.' });
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = await User.create({
+        const newUser = await Users.create({
             username, 
             firstName,
             middleName,

@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const User = require('../model/user-model');
+const Users = require('../../model/user-model');
 const jwt = require('jsonwebtoken');
 
 // singinuser authentication 
@@ -8,7 +8,7 @@ const signinUser = async (req, res) => {
 
     if (!username || !password ) return res.status(400).json({ message: 'Username and password are required.'})
     
-    const foundUser = await User.findOne({ username }).exec();
+    const foundUser = await Users.findOne({ username }).exec();
     if (!foundUser) return res.status(401).json({ message: 'Username not registered.' });
 
     const isMath = await bcrypt.compare(password, foundUser.password);
@@ -17,7 +17,7 @@ const signinUser = async (req, res) => {
         const accessToken = jwt.sign(
             { "id": foundUser._id, "username": foundUser.username },
             process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: '30s' } // for testing purpose only the 30s. i will change that to 10m to 15m
+            { expiresIn: '3m' } // for testing purpose only the 30s. i will change that to 10m to 15m
         );
         const refreshToken = jwt.sign(
             { "id": foundUser._id, "username": foundUser.username },

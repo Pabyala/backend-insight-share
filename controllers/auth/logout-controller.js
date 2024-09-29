@@ -1,4 +1,4 @@
-const User = require('../model/user-model');
+const Users = require('../../model/user-model');
 const jwt = require('jsonwebtoken');
 
 const handleLogout = async (req, res) => {
@@ -10,7 +10,7 @@ const handleLogout = async (req, res) => {
     const refreshToken = cookies.jwt;
 
     // check if the refresh token exists in the database
-    const foundUser = await User.findOne({ refreshToken }).exec();
+    const foundUser = await Users.findOne({ refreshToken }).exec();
     if (!foundUser) {
         res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
         return res.sendStatus(204);

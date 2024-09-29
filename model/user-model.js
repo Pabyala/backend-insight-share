@@ -11,26 +11,27 @@ const userSchema = new Schema({
     gender: { type: String, required: true },
     phoneNumber: { type: String, required: true, unique: true },
     dateOfBirth: { type: String, required: true },
-    bio: { type: String, default: '', maxlength: 84 },
-    userStatus: { type: String, default: '' },
-    avatarUrl: { type: String, default: '' },
-    coverPhotoUrl: { type: String, default: '' },
-    livesIn: { type: String, default: '' },
-    studyAt: { type: String, default: '' },
+    bio: { type: String, maxlength: 84 },
+    userStatus: { type: String, },
+    avatarUrl: { type: String, default: "" },
+    coverPhotoUrl: { type: String, default: "" },
+    livesIn: { type: String, },
+    studyAt: { type: String, }, 
     workAt: {
-        companyName: { type: String, default: '' },
-        position: { type: String, default: '' },
-        cityOrTown: { type: String, default: '' }
+        companyName: { type: String, },
+        position: { type: String, },
+        cityOrTown: { type: String, }
     },
     socials: [{
-        platFormName: { type: String, default: '' },
-        url: { type: String, default: '' }
+        url: { type: String, }
     }],
+    followers: [{ type: Schema.Types.ObjectId, ref: "Users" }],
+    following: [{ type: Schema.Types.ObjectId, ref: "Users" }],
     refreshToken: { type: String }
     }, { 
         timestamps: true 
     }
 )
 
-const UserModel = mongoose.model("User", userSchema);
+const UserModel = mongoose.model("Users", userSchema);
 module.exports = UserModel;

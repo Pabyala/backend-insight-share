@@ -2,14 +2,14 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const commentSchema = new Schema({
-    userId: { type: Schema.Types.ObjectId, ref: 'User' },
-    postId: { type: Schema.Types.ObjectId, ref: 'Post' },
+    userId: { type: Schema.Types.ObjectId, ref: 'Users' },
+    postId: { type: Schema.Types.ObjectId, ref: 'Posts' },
     comment: { type: String, required: true },
     from: { type: String, required: true },
     replies: [
         {
           rid: { type: mongoose.Schema.Types.ObjectId },
-          userId: { type: Schema.Types.ObjectId, ref: "User" },
+          userId: { type: Schema.Types.ObjectId, ref: "Users" },
           from: { type: String },
           replyAt: { type: String },
           comment: { type: String },
@@ -21,5 +21,5 @@ const commentSchema = new Schema({
     // likes: [{ type: String }],
 });
 
-const postModel = mongoose.model("Comment", commentSchema);
+const postModel = mongoose.model("Comments", commentSchema);
 module.exports = postModel;

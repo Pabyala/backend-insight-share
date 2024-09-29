@@ -1,5 +1,5 @@
-const User = require('../model/user-model');
-const cloudinary = require('../config/cloudinary-con')
+const User = require('../../model/user-model');
+const cloudinary = require('../../config/cloudinary-con')
 
 const uploadAvatarUlr = async (req, res) => {
     const { image } = req.body;

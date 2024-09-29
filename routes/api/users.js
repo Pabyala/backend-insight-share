@@ -1,10 +1,15 @@
 const Router = require('express');
-const { getAllUsers, getUserById, updateUser } = require('../../controllers/user-controller')
+const { getAllUsers, getUserOrById, updateUser, userInfo, followUser, unfollowUser, getUserFollowData, suggestedFollowing } = require('../../controllers/user/user-controller')
 const router = Router();
-const verifyJWT = require('../../middleware/verify-jwt');
 
-router.put('/profile-update/:userId', verifyJWT, updateUser);
 router.get('/all-users', getAllUsers);
-router.get('/profile-id/:userId', getUserById);
+router.post('/user-data/:userId?', getUserOrById);
+router.put('/profile', updateUser);
+router.put('/info', userInfo);
+
+router.post('/follow-user', followUser);
+router.post('/unfollow-user', unfollowUser);
+router.get('/follow-data', getUserFollowData);
+router.post("/suggested-following", suggestedFollowing);
 
 module.exports = router;
