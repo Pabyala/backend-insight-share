@@ -13,15 +13,18 @@ const PORT = process.env.PORT;
 // connect to db
 connectDB();
 
-app.use(express.json());
 app.use(credentials)
 app.use(cors(corsOptions));
+// built-in middleware to handle urlencoded form data
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 app.use(cookieParser())
 
-app.use('/v2/signup', require('./routes/register'));
+
+app.use('/v1/signup', require('./routes/register'));
 app.use('/v1/auth', require('./routes/auth'));
-app.use('/refresh', require('./routes/refresh'));
-app.use('/logout', require('./routes/logout'));
+app.use('/v1/refresh', require('./routes/refresh'));
+app.use('/v1/logout', require('./routes/logout'));
 
 // protected routes
 app.use(verifyJWT);

@@ -13,7 +13,7 @@ const handleRefreshToken = async (req, res) => {
     // check if the refresh token exists in the database
     const foundUser = await Users.findOne({ refreshToken }).exec();
     if (!foundUser) return res.sendStatus(403); // Forbidden
- 
+
     // evaluate jwt
     jwt.verify(
         refreshToken,
@@ -24,7 +24,7 @@ const handleRefreshToken = async (req, res) => {
             const accessToken = jwt.sign(
                 { "id": decoded._id, "username": decoded.username },
                 process.env.ACCESS_TOKEN_SECRET,
-                { expiresIn: '30s' } //i will change this to 10-15m
+                { expiresIn: '15s' } //i will change this to 10-15m
             )
             res.json({ accessToken })
         }

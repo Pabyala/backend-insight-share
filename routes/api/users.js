@@ -3,7 +3,7 @@ const { getAllUsers, getUserOrById, updateUser, userInfo, followUser, unfollowUs
 const router = Router();
 
 router.get('/all-users', getAllUsers);
-router.post('/user-data/:userId?', getUserOrById);
+router.post('/user-data/:userId?', getUserOrById); //optional either has a id or not
 router.put('/profile', updateUser);
 router.put('/info', userInfo);
 

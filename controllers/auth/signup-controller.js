@@ -3,9 +3,9 @@ const bcrypt = require('bcrypt');
 
 // singup new user
 const signupNewUser = async (req, res) => {
-    const { username, firstName, middleName, lastName, password, email, gender, phoneNumber, dateOfBirth } = req.body;
+    const { username, firstName, lastName, password, email, gender, phoneNumber, dateOfBirth } = req.body;
 
-    if(!username || !firstName || !middleName || !lastName || !password || !email || !gender || !phoneNumber || !dateOfBirth) return res.status(400).json({ message: 'All fields are required.'})
+    if(!username || !firstName | !lastName || !password || !email || !gender || !phoneNumber || !dateOfBirth) return res.status(400).json({ message: 'All fields are required.'})
     
     const emailDuplicate = await Users.findOne({ email }).exec();
     const phoneNumDuplicate = await Users.findOne({ phoneNumber }).exec();
@@ -18,7 +18,6 @@ const signupNewUser = async (req, res) => {
         const newUser = await Users.create({
             username, 
             firstName,
-            middleName,
             lastName,
             password: hashedPassword,
             email,

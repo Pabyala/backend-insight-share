@@ -15,14 +15,14 @@ const signinUser = async (req, res) => {
     if (isMath) {
         // create JWT
         const accessToken = jwt.sign(
-            { "id": foundUser._id, "username": foundUser.username },
+            { "id": foundUser._id, _id: foundUser._id, "username": foundUser.username },
             process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: '3m' } // for testing purpose only the 30s. i will change that to 10m to 15m
+            { expiresIn: '15s' } // for testing purpose only the 30s. i will change that to 10m to 15m
         );
         const refreshToken = jwt.sign(
             { "id": foundUser._id, "username": foundUser.username },
             process.env.REFRESH_TOKEN_SECRET,
-            { expiresIn: '1d' }
+            { expiresIn: '20s' } // change this to 1d
         );
         // saving refreshToken with current user
         foundUser.refreshToken = refreshToken;
@@ -37,7 +37,7 @@ const signinUser = async (req, res) => {
             maxAge: 24 * 60 * 60 * 1000 
         });
 
-        res.json({ accessToken });
+        res.json({ accessToken, username: foundUser.username, _id: foundUser._id });
     } else {
         return res.status(401).json({ message: 'Incorrect password.' });
     }
