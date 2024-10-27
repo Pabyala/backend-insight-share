@@ -24,7 +24,8 @@ const handleLogout = async (req, res) => {
         console.log("Logout: ", result);
 
         res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
-        res.sendStatus(204);
+        // res.sendStatus(204)
+        return res.status(200).json({ message: "Successfully logged out" });
     } catch (error) {
         console.error("Logout error:", error);
         res.sendStatus(500);

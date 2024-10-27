@@ -75,6 +75,7 @@ const deletePost = async (req, res) => {
     }
 }
 
+// timeline posts
 const getPosts = async (req, res) => {
     // const userIdFormAuth = req.user.id;
     // const { search } = req.body;
@@ -181,11 +182,11 @@ const getPost = async (req, res) => {
 const getAllPostsByUser = async (req, res) => {
     const { userId } = req.params;
     try {
-        const posts = await Posts.find({ 'authorId': userId }).populate('authorName', 'username firstName middleName lastName');  // Populate 'userId' with 'username' from User model
+        const posts = await Posts.find({ 'authorId': userId }).populate('authorId', 'username firstName middleName lastName avatarUrl');  // Populate 'userId' with 'username' from User model
         if (!posts || posts.length === 0) {
             return res.status(204).json({ message: 'No posts found for this user.' });
         }
-        res.json({ yourPost: posts });
+        res.json({ yourAllPost: posts });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

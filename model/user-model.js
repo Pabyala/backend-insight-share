@@ -10,20 +10,23 @@ const userSchema = new Schema({
     email: { type: String, required: true, unique: true },
     gender: { type: String, required: true },
     phoneNumber: { type: String, required: true, unique: true },
-    dateOfBirth: { type: String, required: true },
-    bio: { type: String, maxlength: 84 },
+    dateOfBirth: { type: String, required: true },//
+    isDateBirthShow: { type: Boolean, default: true },//
+    isFollowedShow: { type: Boolean, default: true },//
+    bio: { type: String, maxlength: 84 },//
     userStatus: { type: String, },
     avatarUrl: { type: String, default: "" },
     coverPhotoUrl: { type: String, default: "" },
-    livesIn: { type: String, },
-    studyAt: { type: String, }, 
+    livesIn: { type: String, },//
+    locFrom: { type: String, },//profilePreviewUrl
+    studyAt: { type: String, }, //
     workAt: {
-        companyName: { type: String, },
-        position: { type: String, },
-        cityOrTown: { type: String, }
+        companyName: { type: String, },//
+        position: { type: String, }//
     },
     socials: [{
-        url: { type: String, }
+        urlId: { type: String, },//
+        url: { type: String, }//
     }],
     followers: [{ type: Schema.Types.ObjectId, ref: "Users" }],
     following: [{ type: Schema.Types.ObjectId, ref: "Users" }],
