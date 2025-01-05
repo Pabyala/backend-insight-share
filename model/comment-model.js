@@ -2,10 +2,9 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const commentSchema = new Schema({
-    userId: { type: Schema.Types.ObjectId, ref: 'Users' },
     postId: { type: Schema.Types.ObjectId, ref: 'Posts' },
     comment: { type: String, required: true },
-    from: { type: String, required: true },
+    from: { type: Schema.Types.ObjectId, ref: 'Users' },
     replies: [
         {
           rid: { type: mongoose.Schema.Types.ObjectId },
@@ -13,13 +12,16 @@ const commentSchema = new Schema({
           from: { type: String },
           replyAt: { type: String },
           comment: { type: String },
-          created_At: { type: Date, default: Date.now() },
-          updated_At: { type: Date, default: Date.now() },
-        //   likes: [{ type: String }],
+          createdAt: { type: Date, default: Date.now() },
+          updatedAt: { type: Date, default: Date.now() },
+          heart: [{ type: Schema.Types.ObjectId, ref: 'Users' }],
         },
       ],
-    // likes: [{ type: String }],
-});
+    heart: [{ type: Schema.Types.ObjectId, ref: 'Users' }],
+    }, { 
+      timestamps: true 
+    }
+);
 
 const postModel = mongoose.model("Comments", commentSchema);
 module.exports = postModel;

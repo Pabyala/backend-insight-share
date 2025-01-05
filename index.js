@@ -8,12 +8,22 @@ const corsOptions = require('./config/cors-options');
 const verifyJWT = require('./middleware/verify-jwt');
 const cookieParser = require('cookie-parser');
 const credentials = require('./middleware/credentials');
-const handleUserAvatar = require('./controllers/user/handleUserAvatar');
 const PORT = process.env.PORT;
-const cloudinary = require('./config/cloudinary-con'); // Ensure correct path
-const User = require('./model/user-model'); // Ensure correct path
+const http = require('http'); // Import http module
+const { Server } = require('socket.io');
 
-// connect to db
+const server = http.createServer(app); // Create an HTTP server
+const io = new Server(server, {
+  cors: {
+    // origin: corsOptions.origin, // Directly use the origin function from corsOptions
+    origin: ['http://localhost:3000', 'https://www.yoursite.com'],
+    methods: ['GET', 'POST']
+  }
+});
+// Make io accessible to routes/middleware via app.set()
+app.set('socketio', io);
+
+
 connectDB();
 
 app.use(credentials)
@@ -35,36 +45,14 @@ app.use('/v1/logout', require('./routes/logout'));
 // protected routes
 app.use(verifyJWT);
 app.use('/v1/post', require('./routes/api/posts'));
+app.use('/v1/comment', require('./routes/api/comment'));
 app.use('/v1/user', require('./routes/api/users'));
+app.use('/v1/birthday', require('./routes/api/birthday'));
 app.use('/v1/profile', require('./routes/api/password'));
-app.post("/uploadImage", (req, res) => {
-  const { image } = req.body; // Ensure you destructure image from req.body
-  uploadImage(image)
-      .then((url) => res.send(url))
-      .catch((err) => res.status(500).send(err));
-});
-
-const opts = {
-  overwrite: true,
-  invalidate: true,
-  resource_type: "auto",
-};
-
-const uploadImage = (image) => {
-  return new Promise((resolve, reject) => {
-      cloudinary.uploader.upload(image, opts, (error, result) => {
-          if (result && result.secure_url) {
-              console.log(result.secure_url);
-              return resolve(result.secure_url);
-          }
-          console.log(error.message);
-          return reject({ message: error.message });
-      });
-  });
-};
 
 
 mongoose.connection.once('open', () => {
   console.log("Connected to MongoDB");
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  // app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 });

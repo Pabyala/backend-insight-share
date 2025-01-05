@@ -6,9 +6,10 @@ const postSchema = new Schema({
     captionPost: { type: String, required: true },
     reactions: {
         like: [{ type: Schema.Types.ObjectId, ref: 'Users' }],
-        heart: [{ type: Schema.Types.ObjectId, ref: 'Users' }],
-        wow: [{ type: Schema.Types.ObjectId, ref: 'Users' }],
-        angry: [{ type: Schema.Types.ObjectId, ref: 'Users' }]
+        fire: [{ type: Schema.Types.ObjectId, ref: 'Users' }],
+        handsUp: [{ type: Schema.Types.ObjectId, ref: 'Users' }],
+        disLike: [{ type: Schema.Types.ObjectId, ref: 'Users' }],
+        heart: [{ type: Schema.Types.ObjectId, ref: 'Users' }]
     },
     comments: [{ type: Schema.Types.ObjectId, ref: "Comments" }],
     }, { 

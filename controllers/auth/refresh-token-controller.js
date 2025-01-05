@@ -22,11 +22,13 @@ const handleRefreshToken = async (req, res) => {
             if (err || foundUser.username !== decoded.username) return res.sendStatus(403);
             // create new access token
             const accessToken = jwt.sign(
-                { "id": decoded._id, "username": decoded.username },
+                // { "id": decoded._id, "username": decoded.username }, // orig
+                { "id": foundUser._id, "username": foundUser.username },
                 process.env.ACCESS_TOKEN_SECRET,
-                { expiresIn: '15m' } //i will change this to 10-15m
+                { expiresIn: '15m' } 
             )
-            res.json({ accessToken })
+            // res.json({ accessToken }) // orig
+            res.json({ accessToken, id: foundUser._id, username: foundUser.username });
         }
     )
 }

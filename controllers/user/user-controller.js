@@ -35,6 +35,22 @@ const getUserData = async (req, res) => {
     }
 }
 
+const getUserById = async (req, res) => {
+    const { userId } = req.params;
+
+    if(!userId) return res.status(401).json({ message: 'Required user id.' });
+
+    try {
+        const user = await Users.findById(userId);
+        if(!user) {
+            return res.status(404).json({ message: 'No user found..' })
+        }
+        res.json({ userInfo: user })
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
 // update the user profile 
 const updateUser = async (req, res) => {
     const  userIdFormAuth = req.user.id;
@@ -192,17 +208,21 @@ const userSocials = async (req, res) => {
 
 
 const followUser = async (req, res) => {
-    const userIdFormAuth = req.user.id; 
-    const { userIdToFollow } = req.body; 
+    const userIdFromAuth = req.user.id; 
+    const { userIdToFollow } = req.params; 
 
     if (!userIdToFollow) {
         return res.status(400).json({ message: 'User ID to follow is required.' });
     }
 
+    if (userIdFromAuth === userIdToFollow) {
+        return res.status(400).json({ message: 'You cannot follow yourself.' });
+    }
+
     try {
         // check if the user is already following
         const existingFollow = await Follower.findOne({
-            follower: userIdFormAuth,
+            follower: userIdFromAuth,
             following: userIdToFollow
         });
 
@@ -210,7 +230,7 @@ const followUser = async (req, res) => {
             return res.status(400).json({ message: 'You are already following this user.' });
         }
 
-        const followerRecord = await Follower.create({ follower: userIdFormAuth, following: userIdToFollow });
+        const followerRecord = await Follower.create({ follower: userIdFromAuth, following: userIdToFollow });
 
         const populatedFollower = await Follower.findById(followerRecord._id).populate('following', 'firstName middleName lastName username');
 
@@ -221,49 +241,94 @@ const followUser = async (req, res) => {
     }
 }
 
-const unfollowUser = async (req, res) => {
-    const userIdFormAuth = req.user.id; 
-    const { userIdToUnfollow } = req.body; 
+const unFollowUser = async (req, res) => {
+    const userIdFromAuth = req.user.id; 
+    const { userIdToUnFollow } = req.params; 
 
-    if (!userIdToUnfollow) {
+    if (!userIdToUnFollow) {
         return res.status(400).json({ message: 'User ID to unfollow is required.' });
     }
 
     try {
         const follow = await Follower.findOneAndDelete({
-            follower: userIdFormAuth,
-            following: userIdToUnfollow
+            follower: userIdFromAuth,
+            following: userIdToUnFollow
         });
 
         if (!follow) {
             return res.status(400).json({ message: 'You are not following this user.' });
         }
 
-        return res.json({ message: 'Successfully unfollowed the user.' });
+        return res.json({ message: 'Successfully unfollowed  the user.' });
     } catch (error) {
-        return res.status(500).json({ message: 'Internal server error.' });
+        return res.status(500).json({ message: 'Internal server error. Please try again later.' });
     }
 }
 
 const getFollowers = async (req, res) => {
-    const userIdFormAuth = req.user.id;
+    const userIdFromAuth = req.user.id;
+    const { userId } = req.params;
+
+    const userIdToUse = userId || userIdFromAuth;
+
+    if(!userIdToUse) return res.status(400).json({ message: 'User is required.' });
 
     try {
-        const totalFollowers = await Follower.countDocuments({ following: userIdFormAuth });
-        const followers = await Follower.find({ following: userIdFormAuth }).populate('follower', 'username firstName middleName lastName avatarUrl');
-        return res.json({ totalFollowers, yourFollowers: followers });
+        // const followers = await Follower.find({ following: userIdToUse }).populate('follower', 'username firstName middleName lastName avatarUrl');
+        
+        // return res.json({ message: 'Successfully fetched your follower', totalFollowers: followers.length,  yourFollowers: followers });
+
+        // 1. Get all users who follow the authenticated user (followers)
+        const followers = await Follower.find({ following: userIdToUse }).populate('follower', 'username firstName middleName lastName avatarUrl coverPhotoUrl');
+
+        // 2. Get all users that the authenticated user is following
+        const following = await Follower.find({ follower: userIdToUse }).populate('following', 'username firstName middleName lastName avatarUrl coverPhotoUrl');
+
+        // 3. Convert to arrays of IDs for comparison
+        const followerIds = followers.map(f => f.follower._id.toString());
+        const followingIds = following.map(f => f.following._id.toString());
+
+        // 4. Separate followers into groups
+        const followersYouFollow = followers.filter(f => followingIds.includes(f.follower._id.toString()));  // Mutual followers
+        const followersNotFollowingBack = followers.filter(f => !followingIds.includes(f.follower._id.toString()));  // Followers not followed back
+
+        return res.json({
+            message: 'Successfully fetched followers information.',
+            // user that i following
+            // totalOfMyFollowing: following.length,
+            // myFollowing: following,
+
+            // Mutual: Followers you follow back
+            totalOfMutualFollowers: followersYouFollow.length,
+            mutualFollowers: followersYouFollow.map(f => f.follower),
+
+            // User you not follow back
+            totalOfFollowersYouDontFollowingBack: followersNotFollowingBack.length,
+            followersYouDontFollowingBack: followersNotFollowingBack.map(f => f.follower), 
+
+            // Use followed me
+            totalFollowers: followers.length,
+            allFollowers: followers.map(f => f.follower),
+            
+        });
+
     } catch (error) {
         return res.status(500).json({ message: 'Internal server error.' });
     }
 };
 
 const getFollowing = async (req, res) => {
-    const userIdFormAuth = req.user.id;
+    const userIdFromAuth = req.user.id;
+    const { userId } = req.params; 
+
+    const userIdToUse = userId || userIdFromAuth;
+
+    if(!userIdToUse) return res.status(400).json({ message: 'User is required.' });
 
     try {
-        const totalFollowing = await Follower.countDocuments({ follower: userIdFormAuth });
-        const following  = await Follower.find({ follower: userIdFormAuth }).populate('following', 'username firstName middleName lastName avatarUrl');
-        return res.json({ totalFollowing, youFollowed: following });
+        const following  = await Follower.find({ follower: userIdToUse }).populate('following', 'username firstName middleName lastName avatarUrl');
+        
+        return res.json({ message: 'Successfully fetched your follower',totalFollowing: following.length , youFollowed: following });
     } catch (error) {
         return res.status(500).json({ message: 'Internal server error.' });
     }
@@ -322,23 +387,55 @@ const handleChangeProfileImg = async (req, res) => {
         res.status(200).json({ message: 'Image uploaded successfully', imageUrl });
     } catch (error) {
         console.log(error); 
-        res.status(500).json({ error: 'Image upload failed.' }); 
+        res.status(500).json({ error: 'Image upload failed.' });
     }
 }
 
-module.exports = { 
+const handleChangeBackgroundPhoto = async (req, res) => {
+    const { image } = req.body;
+    const userId = req.user.id;
+    
+    try {
+        if (!image) {
+            return res.status(400).json({ error: 'Image is required.' }); 
+        }
+        const user = await Users.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+    
+        const publicId = `bgPhoto${user.username}_${uuidv4()}`;
+        const uploadedImage = await cloudinary.uploader.upload(image, {
+            upload_preset: 'unsigned_upload_first',
+            public_id: publicId, 
+            allowed_formats: ['png', 'jpg', 'jpeg', 'svg'],
+        });
+        const imageUrl = uploadedImage.secure_url;
+        user.coverPhotoUrl = imageUrl;
+        await user.save(); 
+    
+        res.status(200).json({ message: 'Image uploaded successfully', imageUrl });
+    } catch (error) {
+        console.log(error); 
+        res.status(500).json({ error: 'Image upload failed.' });
+    }
+}
+
+module.exports = {
     getAllUsers, 
     getUserData, 
+    getUserById,
     updateUser, 
     userInfo, 
     userSocials, 
     followUser, 
-    unfollowUser, 
+    unFollowUser, 
     getFollowers, 
     getFollowing, 
     suggestedFollowing, 
     updateProfileDetails,
-    handleChangeProfileImg
+    handleChangeProfileImg,
+    handleChangeBackgroundPhoto
 };
 
 
