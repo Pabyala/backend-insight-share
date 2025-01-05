@@ -9,6 +9,10 @@
 - Comments
 - Reactions
 - Profile Management
+- Profile photo
+- Background photo
+- Birthday
+- Notification
 
 #### Development Status:
 Work in Progress
