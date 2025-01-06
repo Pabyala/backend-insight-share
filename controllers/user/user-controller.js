@@ -421,6 +421,80 @@ const handleChangeBackgroundPhoto = async (req, res) => {
     }
 }
 
+const handleChangeName = async (req, res) => {
+    const userIdFormAuth = req.user.id;
+    const { firstName, middleName, lastName } = req.body;
+
+    if (!firstName || !lastName) {
+        return res.status(400).json({ message: "First name and last name are required." });
+    }
+
+    try {
+        // Find and update the user's name fields.
+        const user = await Users.findById(userIdFormAuth);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        user.firstName = firstName;
+        user.middleName = middleName || user.middleName;
+        user.lastName = lastName;
+
+        // Save the updated document
+        const updatedUser = await user.save();
+
+        return res.status(200).json({
+            message: "Name updated successfully.",
+            updatedUser: {
+                firstName: updatedUser.firstName,
+                middleName: updatedUser.middleName,
+                lastName: updatedUser.lastName
+            },
+        });
+    } catch (error) {
+        console.error("Error updating name:", error);
+        res.status(500).json({ message: "An error occurred while updating the name." });
+    }
+}
+
+
+const handleChangeUserName = async (req, res) => {
+    const userIdFormAuth = req.user.id;
+    const { username } = req.body;
+
+    if(!username) {
+        return res.status(400).json({ message: "First username are required." });
+    }
+
+    
+    try {
+        const user = await Users.findById(userIdFormAuth);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        user.username
+
+        const updatedUser = await user.save();
+
+        return res.status(200).json({
+            message: "Username updated successfully.",
+            updatedUser: {
+                username: updatedUser.username
+            },
+        });
+
+    } catch (error) {
+        console.error("Error updating name:", error);
+        res.status(500).json({ message: "An error occurred while updating the name." });
+    }
+    
+}
+
+
+
 module.exports = {
     getAllUsers, 
     getUserData, 
@@ -435,7 +509,9 @@ module.exports = {
     suggestedFollowing, 
     updateProfileDetails,
     handleChangeProfileImg,
-    handleChangeBackgroundPhoto
+    handleChangeBackgroundPhoto,
+    handleChangeName,
+    handleChangeUserName,
 };
 
 

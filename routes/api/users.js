@@ -1,5 +1,5 @@
 const Router = require('express');
-const { getAllUsers, getUserData, updateUser, userInfo, followUser, unFollowUser, getFollowers, getFollowing, suggestedFollowing, updateProfileDetails, handleChangeProfileImg, handleChangeBackgroundPhoto, getUserById } = require('../../controllers/user/user-controller')
+const { getAllUsers, getUserData, updateUser, userInfo, followUser, unFollowUser, getFollowers, getFollowing, suggestedFollowing, updateProfileDetails, handleChangeProfileImg, handleChangeBackgroundPhoto, getUserById, handleChangeName, handleChangeUserName } = require('../../controllers/user/user-controller')
 const { uploadAvatarUrl } = require('../../controllers/user/avatar-url-controller');
 const { handleImg } = require('../../controllers/user/cloudProfileImg');
 const router = Router();
@@ -29,6 +29,8 @@ router.get('/my-following/:userId?/following', getFollowing); // get following
 // suggested following routes
 router.post("/suggested-following", suggestedFollowing);
 
+router.put('/update-name', handleChangeName);
+router.put('/update-username', handleChangeUserName);
 
 
 
