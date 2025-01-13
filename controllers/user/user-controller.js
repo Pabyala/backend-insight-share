@@ -494,6 +494,97 @@ const handleChangeUserName = async (req, res) => {
 }
 
 
+const updateProfileDetailsSettings = async (req, res) => {
+    const userIdFormAuth = req.user.id;
+    const { bio, livesIn, locFrom, studyAt, companyName, position, dateOfBirth, gender, phoneNumber, userStatus, socials} = req.body;
+
+    if (!userIdFormAuth) {
+        return res.status(400).json({ message: 'You are not authorized to update this user.' });
+    }
+
+    try {
+        const user = await Users.findById(userIdFormAuth);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+        if (bio !== undefined && bio.length > 84) {
+            return res.status(400).json({ message: 'Bio cannot exceed 84 characters' });
+        }
+
+        const updatedUserDetails = {
+            bio: bio !== undefined ? bio : user.bio, 
+            livesIn: livesIn !== undefined ? livesIn : user.livesIn,
+            locFrom: locFrom !== undefined ? locFrom : user.locFrom,
+            studyAt: studyAt !== undefined ? studyAt : user.studyAt,
+            workAt: {
+                position: position !== undefined ? position : user.position,
+                companyName: companyName !== undefined ? companyName : user.companyName,
+            },
+            dateOfBirth: dateOfBirth !== undefined ? dateOfBirth : user.dateOfBirth,
+            gender: gender !== undefined ? gender : user.gender,
+            phoneNumber: phoneNumber !== undefined ? phoneNumber : user.phoneNumber,
+            userStatus: userStatus !== undefined ? userStatus : user.userStatus
+        }
+
+        // Handle the socials field
+        if (Array.isArray(socials)) {
+            // If socials are provided, replace the existing array
+            updatedUserDetails.socials = socials.map(social => ({ url: social.url, urlId: social.urlId }));
+        } else {
+            // If no socials are provided, keep the existing array
+            updatedUserDetails.socials = user.socials; // This line assumes user.socials is already an array
+        }
+
+        const updatedUser = await Users.findByIdAndUpdate(userIdFormAuth, updatedUserDetails, { new: true });
+
+        return res.status(200).json({ message: 'Profile updated successfully.', updatedData: updatedUser });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
+const updateUserNameAndName = async (req, res) => {
+    const userIdFormAuth = req.user.id;
+    const { username, firstName, middleName, lastName } = req.body;
+
+    if (!userIdFormAuth) {
+        return res.status(400).json({ message: 'You are not authorized to update this user.' });
+    }
+
+    if (!username || !firstName || !lastName) {
+        return res.status(400).json({ message: 'Username, First Name, and Last Name are required.' });
+    }
+
+    try {
+        const updatedUser = await Users.findByIdAndUpdate(
+            userIdFormAuth,
+            {
+                username,
+                firstName,
+                middleName,
+                lastName,
+            },
+            { new: true, runValidators: true } // return the updated document and apply schema validation
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        res.status(200).json({
+            message: 'User information updated successfully.',
+            user: updatedUser,
+        });
+
+    } catch (error) {
+        console.error("Error updating:", error);
+        res.status(500).json({ message: "An error occurred while updating the name." });
+    }
+}
+
+
 
 module.exports = {
     getAllUsers, 
@@ -512,6 +603,8 @@ module.exports = {
     handleChangeBackgroundPhoto,
     handleChangeName,
     handleChangeUserName,
+    updateProfileDetailsSettings,
+    updateUserNameAndName,
 };
 
 

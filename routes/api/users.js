@@ -1,5 +1,5 @@
 const Router = require('express');
-const { getAllUsers, getUserData, updateUser, userInfo, followUser, unFollowUser, getFollowers, getFollowing, suggestedFollowing, updateProfileDetails, handleChangeProfileImg, handleChangeBackgroundPhoto, getUserById, handleChangeName, handleChangeUserName } = require('../../controllers/user/user-controller')
+const { getAllUsers, getUserData, updateUser, userInfo, followUser, unFollowUser, getFollowers, getFollowing, suggestedFollowing, updateProfileDetails, handleChangeProfileImg, handleChangeBackgroundPhoto, getUserById, handleChangeName, handleChangeUserName, updateProfileDetailsSettings, updateUserNameAndName } = require('../../controllers/user/user-controller')
 const { uploadAvatarUrl } = require('../../controllers/user/avatar-url-controller');
 const { handleImg } = require('../../controllers/user/cloudProfileImg');
 const router = Router();
@@ -11,6 +11,8 @@ router.get('/data', getUserData); // get user data who login
 router.get('/:userId', getUserById) // get user by id
 router.put('/profile', updateUser); // update user profile (not yet implemented)
 router.put('/profile/details', updateProfileDetails); // update user profile details
+router.put('/profile/settings/personal-details', updateProfileDetailsSettings); // update user personal details in setting page
+router.put('/profile/settings/profile-details', updateUserNameAndName); // update user profile details in setting page
 router.put('/info', userInfo); // ?
 
 // user image upload routes
