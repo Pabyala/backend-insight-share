@@ -336,7 +336,8 @@ const getSavedPosts = async (req, res) => {
                 select: "username firstName middleName lastName avatarUrl coverPhotoUrl",
             }
             ]
-            });
+        });
+
         if (!savedPosts || savedPosts.length === 0) {
             // return res.status(204).json({ message: 'No saved posts found.' });
             return res.status(200).json({ 
@@ -346,8 +347,11 @@ const getSavedPosts = async (req, res) => {
             });
         }
 
+        // filter out entries with null or invalid postId
+        const validSavedPosts = savedPosts.filter(savedPost => savedPost.postId);
+
         // formattedPost structure
-        const formattedPosts = savedPosts.map(savedPost => {
+        const formattedPosts = validSavedPosts.map(savedPost => {
             const post = savedPost.postId; // access the populated postId
             return {
                 _id: post._id,
@@ -456,11 +460,16 @@ const getUserWhoReactToPost = async (req, res) => {
 
         // Combine all reactions into a single "all" array
         const allUsers = [
-            ...post.reactions.like,
-            ...post.reactions.fire,
-            ...post.reactions.handsUp,
-            ...post.reactions.disLike,
-            ...post.reactions.heart,
+            // ...post.reactions.like,
+            // ...post.reactions.fire,
+            // ...post.reactions.handsUp,
+            // ...post.reactions.disLike,
+            // ...post.reactions.heart,
+            ...post.reactions.like.map(user => ({ ...user.toObject(), reactionType: 'like' })),
+            ...post.reactions.fire.map(user => ({ ...user.toObject(), reactionType: 'fire' })),
+            ...post.reactions.handsUp.map(user => ({ ...user.toObject(), reactionType: 'handsUp' })),
+            ...post.reactions.disLike.map(user => ({ ...user.toObject(), reactionType: 'disLike' })),
+            ...post.reactions.heart.map(user => ({ ...user.toObject(), reactionType: 'heart' })),
         ];
 
         return res.status(200).json({

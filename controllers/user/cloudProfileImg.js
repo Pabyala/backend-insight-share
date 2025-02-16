@@ -15,14 +15,21 @@ const handleImg = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
+        // If user has an existing avatar, delete it
+        if (user.avatarPublicId) {
+            await cloudinary.uploader.destroy(user.avatarPublicId);
+        }
+
         const publicId = `${user.username}_${uuidv4()}`;
         const uploadedImage = await cloudinary.uploader.upload(image, {
             upload_preset: 'unsigned_upload_first',
             public_id: publicId, 
             allowed_formats: ['png', 'jpg', 'jpeg', 'svg'],
         });
+
         const imageUrl = uploadedImage.secure_url;
         user.avatarUrl = imageUrl;
+        user.avatarPublicId = publicId;
         await user.save(); 
 
         res.status(200).json({ message: 'Image uploaded successfully', imageUrl });

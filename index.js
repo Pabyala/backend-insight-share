@@ -11,6 +11,10 @@ const credentials = require('./middleware/credentials');
 const PORT = process.env.PORT;
 const http = require('http'); // Import http module
 const { Server } = require('socket.io');
+const { MailtrapClient } = require("mailtrap");
+const { VERIFICATION_EMAIL_TEMPLATE1 } = require('./mail-trap/email-html-template');
+const { createVerificationEmail, sendVerificationEmail } = require('./mail-trap/email-service')
+const Nodemailer = require("nodemailer");
 
 const server = http.createServer(app); // Create an HTTP server
 const io = new Server(server, {
@@ -23,7 +27,6 @@ const io = new Server(server, {
 // Make io accessible to routes/middleware via app.set()
 app.set('socketio', io);
 
-
 connectDB();
 
 app.use(credentials)
@@ -32,6 +35,36 @@ app.use(cors(corsOptions));
 // app.use(express.urlencoded({ extended: false }));
 // app.use(express.json());
 // app.use(cookieParser())
+
+
+// const TOKEN = "a0819b72dfbaea730d5a9477616b1d94";
+
+// const client = new MailtrapClient({
+//     token: TOKEN,
+// });
+
+// const sender = {
+//     email: "hello@demomailtrap.com",
+//     name: "Mailtrap Test",
+// };
+// const recipients = [
+//     {
+//         email: "eleomarfaafajutnao@gmail.com",
+//     }
+// ];
+
+// client
+//     .send({
+//         from: sender,
+//         to: recipients,
+//         subject: "You are awesome!",
+//         html: VERIFICATION_EMAIL_TEMPLATE1,
+//         category: "Integration Test",
+//     })
+//     .then(console.log, console.error);
+
+
+
 
 app.use(express.json({limit: '50mb'}));
 app.use(express.urlencoded({extended: true , limit: '50mb'}))

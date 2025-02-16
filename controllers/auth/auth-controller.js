@@ -4,11 +4,11 @@ const jwt = require('jsonwebtoken');
 
 // singinuser authentication 
 const signinUser = async (req, res) => {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
-    if (!username || !password ) return res.status(400).json({ message: 'Username and password are required.'})
+    if (!email || !password ) return res.status(400).json({ message: 'Email and password are required.'})
     
-    const foundUser = await Users.findOne({ username }).exec();
+    const foundUser = await Users.findOne({ email }).exec();
     if (!foundUser) return res.status(401).json({ message: 'Username not registered.' });
 
     const isMath = await bcrypt.compare(password, foundUser.password);
@@ -37,7 +37,7 @@ const signinUser = async (req, res) => {
             maxAge: 24 * 60 * 60 * 1000 
         });
 
-        res.json({ accessToken, username: foundUser.username, _id: foundUser._id });
+        res.json({ accessToken, email: foundUser.email, _id: foundUser._id, isVerified: foundUser.isVerified });
     } else {
         return res.status(401).json({ message: 'Incorrect password.' });
     }

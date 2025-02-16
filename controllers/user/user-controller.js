@@ -373,15 +373,20 @@ const handleChangeProfileImg = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
+
+        // if (user.avatarPublicId) {
+        //     await cloudinary.uploader.destroy(user.avatarPublicId);
+        // }
     
         const publicId = `${user.username}_${uuidv4()}`;
         const uploadedImage = await cloudinary.uploader.upload(image, {
             upload_preset: 'unsigned_upload_first',
             public_id: publicId, 
             allowed_formats: ['png', 'jpg', 'jpeg', 'svg'],
-        });
+        }); 
         const imageUrl = uploadedImage.secure_url;
         user.avatarUrl = imageUrl;
+        // user.avatarPublicId = publicId;
         await user.save(); 
     
         res.status(200).json({ message: 'Image uploaded successfully', imageUrl });
@@ -403,6 +408,10 @@ const handleChangeBackgroundPhoto = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
+
+        // if (user.coverPhotoPublicId) {
+        //     await cloudinary.uploader.destroy(user.coverPhotoPublicId);
+        // }
     
         const publicId = `bgPhoto${user.username}_${uuidv4()}`;
         const uploadedImage = await cloudinary.uploader.upload(image, {
@@ -412,6 +421,7 @@ const handleChangeBackgroundPhoto = async (req, res) => {
         });
         const imageUrl = uploadedImage.secure_url;
         user.coverPhotoUrl = imageUrl;
+        // user.coverPhotoPublicId = publicId;
         await user.save(); 
     
         res.status(200).json({ message: 'Image uploaded successfully', imageUrl });
