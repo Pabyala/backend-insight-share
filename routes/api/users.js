@@ -1,5 +1,5 @@
 const Router = require('express');
-const { getAllUsers, getUserData, updateUser, userInfo, followUser, unFollowUser, getFollowers, getFollowing, suggestedFollowing, updateProfileDetails, handleChangeProfileImg, handleChangeBackgroundPhoto, getUserById, handleChangeName, handleChangeUserName, updateProfileDetailsSettings, updateUserNameAndName } = require('../../controllers/user/user-controller')
+const { getAllUsers, getUserData, updateUser, userInfo, followUser, unFollowUser, getFollowers, getFollowing, suggestedFollowing, updateProfileDetails, handleChangeProfileImg, handleChangeBackgroundPhoto, getUserById, handleChangeName, handleChangeUserName, updateProfileDetailsSettings, updateUserNameAndName, searchUser, suggestedForYouFollower } = require('../../controllers/user/user-controller')
 const { uploadAvatarUrl } = require('../../controllers/user/avatar-url-controller');
 const { handleImg } = require('../../controllers/user/cloudProfileImg');
 const router = Router();
@@ -9,6 +9,9 @@ router.get('/all-users', getAllUsers); // get all users
 router.get('/data', getUserData); // get user data who login
 // router.post('/user-data/:userId?', getUserData); //optional either has a id or not
 router.get('/:userId', getUserById) // get user by id
+// search a user
+router.get("/search/user", searchUser);
+router.get("/suggested/:userId", suggestedForYouFollower); // get suggested user for you
 router.put('/profile', updateUser); // update user profile (not yet implemented)
 router.put('/profile/details', updateProfileDetails); // update user profile details
 router.put('/profile/settings/personal-details', updateProfileDetailsSettings); // update user personal details in setting page

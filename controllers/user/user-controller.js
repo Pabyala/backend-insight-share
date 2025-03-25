@@ -2,7 +2,9 @@ const Follower = require('../../model/follower-model');
 const Following = require('../../model/following-model');
 const Users = require('../../model/user-model');
 const cloudinary = require('../../config/cloudinary-con'); 
+const Notification = require('../../model/notification-model');
 const { v4: uuidv4 } = require('uuid'); 
+const { io } = require('../../socket-io/socket-setup');
 
 // git all the user //GOOD
 const getAllUsers = async (req, res) => {
@@ -230,11 +232,47 @@ const followUser = async (req, res) => {
             return res.status(400).json({ message: 'You are already following this user.' });
         }
 
+        // add the new follower record
         const followerRecord = await Follower.create({ follower: userIdFromAuth, following: userIdToFollow });
 
-        const populatedFollower = await Follower.findById(followerRecord._id).populate('following', 'firstName middleName lastName username');
+        // Check if the user being followed also follows back
+        const isFollowBack = await Follower.findOne({
+            follower: userIdToFollow,
+            following: userIdFromAuth
+        });
 
-        return res.json({ message: 'Successfully followed the user.', followedUser: populatedFollower.following });
+        // Remove old follow notification (if it exists)
+        await Notification.deleteOne({
+            senderId: userIdToFollow,
+            receiverId: userIdFromAuth,
+            type: 'follow'
+        });
+
+        let message = "is now following you"; 
+
+        if (isFollowBack) {
+            message = "followed you back";
+        }
+
+        // Create a notification for the followed user
+        const notification = new Notification({
+            senderId: userIdFromAuth,  // The user who is following
+            receiverId: userIdToFollow, // The user who is being followed
+            userId: userIdFromAuth,
+            postId: null,
+            type: 'follow',
+            message, // Dynamic message
+            typeOfNotification: 'follow',
+            isRead: false
+        });
+
+        await notification.save();
+        io.emit('newFollower', 'follow');
+
+        return res.json({ 
+            message: isFollowBack ? 'Successfully followed back the user.' : 'Successfully followed the user.',
+            followedUser: userIdToFollow
+        });
 
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -594,6 +632,79 @@ const updateUserNameAndName = async (req, res) => {
     }
 }
 
+const searchUser = async (req, res) => {
+    try {
+        const { query } = req.query; // Get search query from request
+
+        if (!query) {
+            return res.status(400).json({ message: "Search query is required." });
+        }
+
+        // Use regex to search anywhere inside the word (not at the start only)
+        const users = await Users.find({
+            $or: [
+                { username: { $regex: query, $options: "i" } }, 
+                { firstName: { $regex: query, $options: "i" } }, 
+                { lastName: { $regex: query, $options: "i" } },
+            ],
+        }).select("username firstName middleName lastName avatarUrl");
+
+        if (!users.length) {
+            return res.status(404).json({ message: "No users found." });
+        }
+
+        res.status(200).json(users);
+    } catch (error) {
+        console.error("Error searching for user:", error);
+        res.status(500).json({ message: "An error occurred while searching for users." });
+    }
+};
+
+// const suggestedForYouFollower = async (req, res) => {
+
+// }
+
+const suggestedForYouFollower = async (req, res) => {
+    try {
+        const { userId } = req.params; // Get the user ID from request params
+
+        // Ensure user exists
+        const currentUser = await Users.findById(userId);
+        if (!currentUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // // Find users who are not yet followed by the current user
+        // const suggestedUsers = await Users.find({
+        //     _id: { $ne: userId, $nin: currentUser.following }, // Exclude self and already followed users
+        // })
+        // .limit(10) // Limit suggestions
+        // .select("name avatarUrl"); // Select only necessary fields
+
+        // Fetch random suggested users, excluding the current user and already followed users
+        const suggestedUsers = await Users.aggregate([
+            { $match: { _id: { $ne: currentUser._id, $nin: currentUser.following } } }, // Exclude self and followed users
+            { $sample: { size: 10 } }, // Randomly pick 10 users
+            { 
+                $project: {
+                    username: 1,
+                    firstName: 1,
+                    middleName: 1,
+                    lastName: 1,
+                    _id: 1,
+                    avatarUrl: 1,
+                    coverPhotoUrl: 1
+                }
+             } // Select only necessary fields
+        ]);
+
+        res.status(200).json(suggestedUsers);
+    } catch (error) {
+        console.error("Error fetching suggested followers:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
 
 
 module.exports = {
@@ -615,8 +726,6 @@ module.exports = {
     handleChangeUserName,
     updateProfileDetailsSettings,
     updateUserNameAndName,
+    searchUser,
+    suggestedForYouFollower,
 };
-
-
-
-

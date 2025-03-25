@@ -3,6 +3,8 @@ const Posts = require('../../model/post-model');
 const Users = require('../../model/user-model');
 const SavedPosts = require('../../model/save-post-modal');
 const Comments = require('../../model/comment-model');
+const { io } = require('../../socket-io/socket-setup');
+const Notification = require('../../model/notification-model');
 
 const getAllCommentOfPost = async (req, res) => {
     const { postId } = req.params;
@@ -42,8 +44,6 @@ const addCommentToPost = async (req, res) => {
             comment,
             from: commenterId,
         });
-        
-        // res.status(201).json({ message: "Comment added successfully", newComment });
 
         // Add the comment _id to the post's comments array
         post.comments.push(newComment._id);
@@ -52,6 +52,41 @@ const addCommentToPost = async (req, res) => {
         // Populate the new comment (optional: populate user info, etc.)
         // Populate the new comment (populate user info)
         const populatedComment = await Comments.findById(newComment._id).populate('from', 'username firstName lastName avatarUrl coverPhotoUrl');
+
+        // **Notification Logic**
+        if (commenterId !== post.authorId.toString()) {
+            let notification = await Notification.findOne({
+                senderId: commenterId,
+                receiverId: post.authorId,
+                postId: postId,
+                commentId: newComment._id, // Use the commentId in the notification
+                type: "comment",
+            });
+
+            if (notification) {
+                // Update existing notification timestamp
+                notification.message = `commented on your post.`;
+                notification.createdAt = new Date(); // Update timestamp
+                await notification.save();
+            } else {
+                // Create a new notification
+                notification = new Notification({
+                    senderId: commenterId,
+                    receiverId: post.authorId,
+                    type: "comment",
+                    postId: postId,
+                    commentId: newComment._id, // Store the comment ID
+                    message: `commented on your post.`,
+                    userId: commenterId, // Ensure the userId field is included
+                });
+
+                await notification.save();
+            }
+
+            // Emit notification via Socket.io
+            io.emit('addCommentToPost', commenterId);
+        }
+
 
         // Respond with the success message and the populated comment
         res.status(201).json({ message: "Comment added successfully", populatedComment });
@@ -81,8 +116,23 @@ const updateCommentToPost = async (req, res) => {
 
         comment.comment = updatedComment;
         comment.updatedAt = new Date();
-        
+
         await comment.save();
+
+         // **Update existing notification (if any)**
+        let notification = await Notification.findOne({
+            senderId: userId,
+            commentId: commentId,
+            type: "comment",
+        });
+
+        if (notification) {
+            // Update the existing notification timestamp
+            notification.message = `updated their comment on your post.`;
+            notification.createdAt = new Date();
+            await notification.save();
+        }
+        io.emit('addCommentToPost', commentId);
 
         res.json({ message: 'Comment updated successfully', comment });;
 
@@ -110,13 +160,7 @@ const deleteCommentToPost = async (req, res) => {
 
         // Check if the user is authorized to delete the comment
         const isCommentAuthor = comment.from.toString() === userId;
-        console.log("COMMENT AUTHOR", isCommentAuthor)
         const isPostAuthor = post.authorId.toString() === userId;
-        console.log("POST AUTHOR", isPostAuthor)
-
-        // if(comment.from.toString() !== userId && post.authorId.toString() !== userId){
-        //     return res.status(403).json({ message: 'You are not authorized to delete this comment' });
-        // }
 
         if (!isCommentAuthor && !isPostAuthor) {
             return res.status(403).json({ message: 'You are not authorized to delete this comment.' });
@@ -132,6 +176,8 @@ const deleteCommentToPost = async (req, res) => {
         comment.replies = []; // Clear the replies array
         await comment.save(); // Save the comment after clearing replies
         await Comments.findByIdAndDelete(commentId);
+
+
 
         return res.status(200).json({ message: 'Comment deleted successfully' });
     } catch (error) {
@@ -258,24 +304,55 @@ const deleteAddReplyToComment = async (req, res) => {
 const addOrRemoveHeartToComment = async (req, res) => {
     const { commentId } = req.params;
     const { userId } = req.body;
-    // const userId = req.user.id;
-
 
     try {
         const comment = await Comments.findById(commentId);
         if (!comment) return res.status(404).json({ message: "Comment not found" });
 
         // Check if user already reacted
+        const commentOwner = comment.from;
+        const commentContext = comment.comment;
+        const postId = comment.postId
         const heartIndex = comment.heart.indexOf(userId);
         if (heartIndex === -1) {
             // Add heart
             comment.heart.push(userId);
+            // add here to the notification 
+
+            if (commentOwner.toString() !== userId) {
+                const notification = new Notification({
+                    senderId: userId,
+                    receiverId: commentOwner,
+                    userId: userId,
+                    postId: postId,
+                    type: "reactionToComment",
+                    message: "reacted to your comment",
+                    typeOfNotification: 'heart',
+                    commentId: comment._id,
+                    commentContext: commentContext,
+                    createdAt: new Date(),
+                });
+
+                await notification.save();
+                io.emit('addRemoveReactToComment', 'addHeartComment');
+            }
         } else {
             // Remove heart
             comment.heart.splice(heartIndex, 1);
+
+            // Remove notification
+            await Notification.findOneAndDelete({
+                senderId: userId,
+                receiverId: commentOwner,
+                postId: postId,
+                type: "reactionToComment",
+                commentId: comment._id,
+            });
+            io.emit('addRemoveReactToComment', 'addHeartComment');
         }
 
         await comment.save();
+
         res.status(200).json({ message: "Reaction updated", hearts: comment.heart });
     } catch (error) {
         res.status(500).json({ message: "Server error", error });
@@ -285,7 +362,6 @@ const addOrRemoveHeartToComment = async (req, res) => {
 const addOrRemoveHeartToReply = async (req, res) => {
     const { commentId, replyId } = req.params;
     const { userId } = req.body;
-    // const userId = req.user.id;
 
     try {
         const comment = await Comments.findById(commentId);
@@ -294,17 +370,50 @@ const addOrRemoveHeartToReply = async (req, res) => {
         const reply = comment.replies.id(replyId);
         if (!reply) return res.status(404).json({ message: "Reply not found" });
 
+        const replyOwner = reply.from;
+        const replyContext = reply.comment;
+        console.log(replyContext)
+        const postId = comment.postId
         // Check if user already reacted
         const heartIndex = reply.heart.indexOf(userId);
         if (heartIndex === -1) {
             // Add heart
             reply.heart.push(userId);
+
+            if (replyOwner.toString() !== userId) {
+                const notification = new Notification({
+                    senderId: userId,
+                    receiverId: replyOwner,
+                    userId: userId,
+                    postId: postId,
+                    type: "reactionToReply",
+                    message: "reacted to your reply comment",
+                    typeOfNotification: 'heart',
+                    commentId: reply._id,
+                    commentContext: replyContext,
+                    createdAt: new Date(),
+                });
+
+                await notification.save();
+                io.emit('addRemoveReactToReply', 'addHeartReply');
+            }
         } else {
             // Remove heart
             reply.heart.splice(heartIndex, 1);
-        }
 
+            // Remove notification
+            await Notification.findOneAndDelete({
+                senderId: userId,
+                receiverId: commentOwner,
+                postId: postId,
+                type: "reactionToReply",
+                commentId: comment._id,
+            });
+            io.emit('addRemoveReactToReply', 'addHeartReply');
+        }
+        
         await comment.save();
+
         res.status(200).json({ message: "Reaction updated", hearts: reply.heart });
     } catch (error) {
         res.status(500).json({ message: "Server error", error });

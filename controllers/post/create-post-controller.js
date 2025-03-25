@@ -2,6 +2,10 @@ const Posts = require('../../model/post-model');
 const Users = require('../../model/user-model');
 const SavedPosts = require('../../model/save-post-modal');
 const Comments = require('../../model/comment-model');
+const Notification = require('../../model/notification-model');
+// const main = require('../../index')
+const main = require('../../index');
+const { io } = require('../../socket-io/socket-setup');
 // const io = req.app.get('socketio');
 
 // get all posts of all users
@@ -117,6 +121,8 @@ const deletePost = async (req, res) => {
             return res.status(404).json({ message: 'Post not found' });
         }
 
+        io.emit('deletedPost', postId);
+
         res.json({ message: 'Post deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -170,8 +176,8 @@ const getPosts = async (req, res) => {
             : posts;
 
         // Emit the updated posts to all connected clients
-        const io = req.app.get('socketio');
-         io.emit('postsUpdated', postsRes);  // This will notify clients of any updated posts
+        // const io = req.app.get('socketio');
+        // io.emit('postsUpdated', postsRes);  // This will notify clients of any updated posts
         
         res.status(200).json({
             message: "Posts fetched successfully",
@@ -379,41 +385,82 @@ const reactionToggle = async (req, res) => {
     const { postId } = req.params;
     const { userId, reactionType } = req.body;
 
-    if(!userId || !postId || !reactionType) return res.status(400).json({ message: 'User ID, post ID, and reaction type are required.'}) 
+    if (!userId || !postId || !reactionType) {  
+        return res.status(400).json({ message: "User ID, post ID, and reaction type are required." });
+    }
 
     try {
         // Find the post
         const post = await Posts.findById(postId);
         if (!post) return res.status(404).json({ message: "Post not found" });
 
-        // Check if user has already reacted with this type
-        const hasReacted = post.reactions[reactionType].includes(userId);
+        // Ensure reaction type exists in schema
+        if (!post.reactions[reactionType]) {
+            return res.status(400).json({ message: "Invalid reaction type" });
+        }
 
-        if (hasReacted) {
-            // If already reacted, remove the reaction
-            post.reactions[reactionType] = post.reactions[reactionType].filter(id => id.toString() !== userId);
-        } else {
+        let previousReactionType = null;
 
-            // Otherwise, add the reaction
-            // Remove user from any other reaction types (one reaction per user)
-            Object.keys(post.reactions).forEach(type => {
-                post.reactions[type] = post.reactions[type].filter(id => id.toString() !== userId);
-            });
-            // Add the user to the specified reaction type
+        // Find the previous reaction of the user
+        Object.keys(post.reactions).forEach((type) => {
+            if (post.reactions[type].includes(userId)) {
+                previousReactionType = type;
+                post.reactions[type] = post.reactions[type].filter((id) => id.toString() !== userId);
+            }
+        });
+
+        // Add the new reaction only if it's different from the previous one
+        if (previousReactionType !== reactionType) {
             post.reactions[reactionType].push(userId);
         }
 
-        // Emit the update to all connected clients
-        const io = req.app.get('socketio');
-        io.emit('reactionUpdated', { postId, reactionType, userId, reactions: post.reactions });
-
         await post.save();
+
+        // Get Socket.io instance
+        // const io = req.app.get("socketio");
+
+        if (userId !== post.authorId.toString()) {
+            let notification = await Notification.findOne({
+                senderId: userId,
+                receiverId: post.authorId,
+                postId: postId,
+                type: "reaction",
+            });
+
+            if (notification) {
+                if (previousReactionType !== reactionType) {
+                    // Update existing notification with new reaction type
+                    notification.typeOfNotification = reactionType;
+                    notification.message = `reacted to your post.`;
+                    notification.createdAt = new Date(); // Update timestamp
+                    await notification.save();
+                }
+            } else {
+                // Create a new notification if it doesn't exist
+                notification = new Notification({
+                    senderId: userId,
+                    receiverId: post.authorId,
+                    type: "reaction",
+                    postId: postId,
+                    message: `reacted to your post.`,
+                    typeOfNotification: reactionType,
+                    commentId: null,
+                    userId: userId,
+                });
+
+                await notification.save();
+            }
+
+            io.emit('addReactPost', reactionType);
+        }
+
         res.status(200).json({ message: "Reaction updated", reactions: post.reactions });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "An error occurred", error });
-        console.log(error)
     }
-}
+};
+
 
 const getReactionOfPost = async (req, res) => {
     const { postId } = req.params;

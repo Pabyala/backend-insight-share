@@ -22,9 +22,9 @@ router.delete('/delete-comment/:commentId', deleteCommentToPost) // delete comme
 router.post('/:commentId/heart', addOrRemoveHeartToComment) 
 
 // replies
+router.post('/:commentId/replies/:replyId/heart', addOrRemoveHeartToReply)
 router.post('/:commentId/reply', addReplyToComment)
 router.put('/update-reply/:commentId/:replyId', updateAddReplyToComment)
 router.delete('/delete-reply/:commentId/:replyId', deleteAddReplyToComment)
-router.post('/:commentId/replies/:replyId/heart', addOrRemoveHeartToReply)
 
 module.exports = router;

@@ -20,7 +20,7 @@ const handleRefreshToken = async (req, res) => {
         process.env.REFRESH_TOKEN_SECRET,
         (err, decoded) => {
             if (err || foundUser.username !== decoded.username) return res.sendStatus(403);
-            // create new access token
+            // create new access token      
             const accessToken = jwt.sign(
                 // { "id": decoded._id, "username": decoded.username }, // orig
                 { "id": foundUser._id, "username": foundUser.username },
