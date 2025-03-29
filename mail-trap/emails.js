@@ -1,5 +1,4 @@
 const { WELCOME_EMAIL_TEMPLATE, VERIFICATION_EMAIL_TEMPLATE, RESET_PASSWORD_EMAIL_TEMPLATE, PASSWORD_RESET_SUCCESS_TEMPLATE } = require("./email-html-template");
-const { mailTrapClient, mailTrapSender } = require("./mail-trap");
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 

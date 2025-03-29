@@ -2,7 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 require("dotenv").config();
 const cors = require('cors');
-// const app = express();
 const connectDB = require('./config/database-con');
 const corsOptions = require('./config/cors-options');
 const verifyJWT = require('./middleware/verify-jwt');
@@ -10,21 +9,12 @@ const cookieParser = require('cookie-parser');
 const credentials = require('./middleware/credentials');
 const PORT = process.env.PORT
 
-
 connectDB();
 
-const http = require('http'); // Import http module
-// const server = http.createServer(app); 
-const { Server } = require('socket.io');
-const allowedOrigins = require('./config/allowed-origins');
+// const http = require('http'); // Import http module
+// const { Server } = require('socket.io');
+// const allowedOrigins = require('./config/allowed-origins');
 const { server, app } = require('./socket-io/socket-setup');
-// const io = new Server(server, {
-//   cors: {
-//       origin: allowedOrigins,
-//       methods: ["GET", "POST"],
-//       credentials: true 
-//   }
-// }); 
 
 app.use(credentials)
 app.use(cors(corsOptions));
@@ -46,20 +36,6 @@ app.use('/v1/user', require('./routes/api/users'));
 app.use('/v1/birthday', require('./routes/api/birthday'));
 app.use('/v1/profile', require('./routes/api/password'));
 app.use('/v1/notification', require('./routes/api/notification'));
-
-// io.on('connection', (socket) => {
-//   console.log('A user connected: ', socket.id);
-
-//   socket.on('reactPost', (reactMsg) => {
-//     console.log("Someone reacted to the post: ", reactMsg);
-//   })
-
-//   socket.on('disconnect', () => {
-//       console.log('User disconnected:', socket.id);
-//   });
-// });
-
-// exports.io = io;
 
 mongoose.connection.once('open', () => {
   console.log("Connected to MongoDB");

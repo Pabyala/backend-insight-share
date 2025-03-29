@@ -1,61 +1,6 @@
-// const Users = require('../../model/user-model');
-// const bcrypt = require('bcrypt');
-// const { generateVerificationToken } = require('../../utils/generat-random-verification-code');
-// const { sendVerificationEmail } = require('../../mail-trap/emails');
-
-// // singup new user
-// const signupNewUser = async (req, res) => {
-//     const { username, firstName, lastName, password, email, gender, phoneNumber, dateOfBirth } = req.body;
-
-//     if(!username || !firstName | !lastName || !password || !email || !gender || !phoneNumber || !dateOfBirth) return res.status(400).json({ message: 'All fields are required.'})
-    
-//     const emailDuplicate = await Users.findOne({ email }).exec();
-//     const phoneNumDuplicate = await Users.findOne({ phoneNumber }).exec();
-
-//     if (emailDuplicate) return res.status(400).json({ message: 'Email already exist.' });
-//     if (phoneNumDuplicate) return res.status(400).json({ message: 'Phone number already exist.' });
-
-//     try {
-//         const hashedPassword = await bcrypt.hash(password, 10);
-//         const verificationToken = generateVerificationToken();
-
-//         const newUser = await Users.create({
-//             username, 
-//             firstName,
-//             lastName,
-//             password: hashedPassword,
-//             email,
-//             gender,
-//             phoneNumber,
-//             dateOfBirth,
-//             verificationToken,
-//             verificationExpiresAt:  Date.now() + 24 * 60 * 60 * 1000
-//         })
-//         console.log("Sending email to:", newUser.email);
-//         console.log("Verification token:", verificationToken);
-        
-//         try {
-//             await sendVerificationEmail(newUser.email, verificationToken);
-//         } catch (error) {
-//             console.error("Error sending verification email:", error.message);
-//             return res
-//                 .status(500)
-//                 .json({ message: "Sign up successful, but failed to send verification email." });
-//         }
-
-//         console.log("Created user :.", newUser);
-//         res.status(201).json({ message: 'Sign up successful' });
-//     } catch (error) {
-//         res.status(500).json({ message: error.message });
-//     }
-// }
-
-// module.exports = { signupNewUser };
-
 const Users = require("../../model/user-model");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
-const { VERIFICATION_EMAIL_TEMPLATE, RESET_PASSWORD_EMAIL_TEMPLATE } = require("../../mail-trap/email-html-template");
 const { generateVerificationToken } = require("../../utils/generat-random-verification-code");
 const { transporter, sendWelcomeEmail, sendVerificationEmail, sendResetPasswordEmail, sendSuccessResetPasswordEmail } = require("../../mail-trap/emails");
 

@@ -1,7 +1,9 @@
 const Router = require('express');
-const getNotifications = require('../../controllers/notification/get-all-nitification');
+const { getNotification, markAllReadNotification, markOneNotification } = require('../../controllers/notification/user-notification');
 const router = Router();
 
-router.get("/:userId", getNotifications);
+router.get("/:userId", getNotification);
+router.patch("/read/:notificationId", markOneNotification);
+router.put("/mark-all-read/:userId", markAllReadNotification);
 
-module.exports = router;    
+module.exports = router;
