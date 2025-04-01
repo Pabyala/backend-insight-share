@@ -177,7 +177,13 @@ const deleteCommentToPost = async (req, res) => {
         await comment.save(); // Save the comment after clearing replies
         await Comments.findByIdAndDelete(commentId);
 
-
+        // Remove the notification related to this comment (if exists)
+        await Notification.deleteOne({
+            postId: post._id,
+            commentId: commentId, // Assuming `commentId` is used in the notification schema
+            type: 'comment'
+        });
+        io.emit('deletedComment', commentId);
 
         return res.status(200).json({ message: 'Comment deleted successfully' });
     } catch (error) {

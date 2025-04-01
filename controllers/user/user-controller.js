@@ -297,6 +297,14 @@ const unFollowUser = async (req, res) => {
             return res.status(400).json({ message: 'You are not following this user.' });
         }
 
+        // Remove the follow notification (if it exists)
+        await Notification.deleteOne({
+            senderId: userIdFromAuth,   // The user who unfollowed
+            receiverId: userIdToUnFollow, // The user who was unfollowed
+            type: 'follow', // The type of notification to remove (can adjust if you use a different type for unfollow)
+        });
+        io.emit('unFollowed', 'unfollow');
+
         return res.json({ message: 'Successfully unfollowed  the user.' });
     } catch (error) {
         return res.status(500).json({ message: 'Internal server error. Please try again later.' });
@@ -412,9 +420,9 @@ const handleChangeProfileImg = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // if (user.avatarPublicId) {
-        //     await cloudinary.uploader.destroy(user.avatarPublicId);
-        // }
+        if (user.avatarPublicId) {
+            await cloudinary.uploader.destroy(user.avatarPublicId);
+        }
     
         const publicId = `${user.username}_${uuidv4()}`;
         const uploadedImage = await cloudinary.uploader.upload(image, {
@@ -424,7 +432,7 @@ const handleChangeProfileImg = async (req, res) => {
         }); 
         const imageUrl = uploadedImage.secure_url;
         user.avatarUrl = imageUrl;
-        // user.avatarPublicId = publicId;
+        user.avatarPublicId = publicId;
         await user.save(); 
     
         res.status(200).json({ message: 'Image uploaded successfully', imageUrl });
@@ -681,9 +689,15 @@ const suggestedForYouFollower = async (req, res) => {
         // .limit(10) // Limit suggestions
         // .select("name avatarUrl"); // Select only necessary fields
 
+        const followingIds = await Follower.find({ follower: userId }).distinct("following");
+
         // Fetch random suggested users, excluding the current user and already followed users
         const suggestedUsers = await Users.aggregate([
-            { $match: { _id: { $ne: currentUser._id, $nin: currentUser.following } } }, // Exclude self and followed users
+            {
+                $match: { 
+                    _id: { $ne: currentUser._id, $nin: followingIds } // Exclude self & already followed users
+                }
+            },
             { $sample: { size: 10 } }, // Randomly pick 10 users
             { 
                 $project: {
@@ -695,7 +709,7 @@ const suggestedForYouFollower = async (req, res) => {
                     avatarUrl: 1,
                     coverPhotoUrl: 1
                 }
-             } // Select only necessary fields
+            }
         ]);
 
         res.status(200).json(suggestedUsers);
@@ -704,8 +718,6 @@ const suggestedForYouFollower = async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 };
-
-
 
 module.exports = {
     getAllUsers, 
