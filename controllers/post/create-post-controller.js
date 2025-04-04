@@ -171,19 +171,40 @@ const getPosts = async (req, res) => {
             post => !following.includes(post?.authorId?._id.toString())
         );
 
-        const postsRes = followingPosts.length > 0
-            ? search ? followingPosts : [...followingPosts, ...otherPosts]
-            : posts;
+        // const postsRes = followingPosts.length > 0
+        //     ? search ? followingPosts : [...followingPosts, ...otherPosts]
+        //     : posts;
 
         // Emit the updated posts to all connected clients
         // const io = req.app.get('socketio');
         // io.emit('postsUpdated', postsRes);  // This will notify clients of any updated posts
         
+
+        // Introduce engagement score to sort posts
+        const sortedPosts = [...followingPosts, ...otherPosts].map(post => ({
+            ...post.toObject(),
+            engagementScore: 
+                (new Date() - post.createdAt) * -0.5 +  // Newer posts get higher weight
+                post.reactions?.like?.length * 0.3 +    // Likes contribute to ranking
+                post.reactions?.heart?.length * 0.3 +   // Hearts also contribute
+                post.comments?.length * 0.2 +           // Comments boost slightly
+                Math.random() * 10                      // Random factor for freshness
+        }));
+
+        // Sort by engagement score descending
+        sortedPosts.sort((a, b) => b.engagementScore - a.engagementScore);
+
         res.status(200).json({
             message: "Posts fetched successfully",
-            postCount: postsRes.length,
-            dataPost: postsRes,
+            postCount: sortedPosts.length,
+            dataPost: sortedPosts,
         });
+
+        // res.status(200).json({
+        //     message: "Posts fetched successfully",
+        //     postCount: postsRes.length,
+        //     dataPost: postsRes,
+        // });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

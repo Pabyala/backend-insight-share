@@ -17,7 +17,7 @@ const VERIFICATION_EMAIL_TEMPLATE = `
                 <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #3B82F6;">{verificationCode}</span>
             </div>
             <p>Enter this code on the verification page to complete your registration.</p>
-            <p>This code will expire in 15 minutes for security reasons.</p>
+            <p>This code will expire in 10 minutes for security reasons.</p>
             <p>If you didn't create an account with us, please ignore this email.</p>
             <p>Best regards,<br>Insight Share</p>
         </div>
@@ -47,7 +47,7 @@ const RESET_PASSWORD_EMAIL_TEMPLATE = `
                     <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #3B82F6;">{resetPasswordToken}</span>
                 </div>
                 <p>Enter this token on the password reset page to set a new password.</p>
-                <p>This token will expire in 15 minutes for security reasons.</p>
+                <p>This token will expire in 10 minutes for security reasons.</p>
                 <p>If you did not request a password reset, please ignore this email.</p>
                 <p>Best regards,<br>Insight Share</p>
             </div>

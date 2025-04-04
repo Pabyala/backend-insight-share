@@ -2,7 +2,7 @@ const Users = require("../../model/user-model");
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 const { generateVerificationToken } = require("../../utils/generat-random-verification-code");
-const { transporter, sendWelcomeEmail, sendVerificationEmail, sendResetPasswordEmail, sendSuccessResetPasswordEmail } = require("../../mail-trap/emails");
+const { sendWelcomeEmail, sendVerificationEmail, sendResetPasswordEmail, sendSuccessResetPasswordEmail } = require("../../mail-trap/emails");
 
 // Sign up new user
 const signupNewUser = async (req, res) => {
@@ -38,13 +38,11 @@ const signupNewUser = async (req, res) => {
         try {
             await sendVerificationEmail(email, verificationToken, firstName);
         } catch (emailError) {
-            console.error("Error sending verification email:", emailError.message);
             return res.status(500).json({ message: "Error sending verification email. Please try again." });
         }
         
         res.status(201).json({ message: "Sign up successful" });
     } catch (error) {
-        console.error("Error creating user:", error.message);
         res.status(500).json({ message: error.message });
     }
 };
@@ -54,10 +52,6 @@ const verifyEmail = async (req, res) => {
 
     try {
         if (!verificationCode) return res.status(400).json({ message: "Enter verification code." });
-        // const user = await Users.findOne({
-        //     verificationToken: code,
-        //     verificationExpiresAt: { $gt: Date.now() } // if its greater than date.now still valid
-        // })
 
         const user = await Users.findOne({ verificationToken: verificationCode });
 
@@ -75,7 +69,6 @@ const verifyEmail = async (req, res) => {
 
         res.status(201).json({ message: "Email verified successfully." });
     } catch (error) {
-        console.error("Error creating user:", error.message);
         res.status(500).json({ message: error.message });
     }
 }
@@ -106,7 +99,6 @@ const resendVerificationCode = async (req, res) => {
 
         res.status(200).json({ message: "A new verification code has been sent to your email." });
     } catch (error) {
-        console.error("Error resending verification code:", error.message);
         res.status(500).json({ message: "Internal server error." });
     }
 };
@@ -121,7 +113,7 @@ const resetPassword = async (req, res) => {
         if (!user) return res.status(400).json({ message: "Email not found." });
 
         const resetPasswordToken = generateVerificationToken();
-        const resetPasswordExpiresAt = Date.now() + 24 * 60 * 60 * 1000; // Token valid for 24 hours
+        const resetPasswordExpiresAt = Date.now() + 10 * 60 * 1000; // Token valid for 10m
         user.resetPasswordToken = resetPasswordToken;
         user.resetPasswordExpiresAt = resetPasswordExpiresAt;
         
@@ -132,7 +124,6 @@ const resetPassword = async (req, res) => {
 
         res.status(200).json({ message: "Reset password token sent successfully.", typeOfCode: 'resetPassword' });
     } catch (error) {
-        console.error("Error resetting password:", error.message);
         res.status(500).json({ message: "Server error. Please try again later." });
     }
 };
@@ -142,10 +133,6 @@ const verifyResetPasswordCode = async (req, res) => {
 
     try {
         if (!verificationCode) return res.status(400).json({ message: "Enter verification code." });
-        // const user = await Users.findOne({
-        //     verificationToken: code,
-        //     verificationExpiresAt: { $gt: Date.now() } // if its greater than date.now still valid
-        // })
 
         const user = await Users.findOne({ resetPasswordToken: verificationCode });
 
@@ -157,7 +144,6 @@ const verifyResetPasswordCode = async (req, res) => {
 
         res.status(201).json({ message: "Verified successfully." });
     } catch (error) {
-        console.error("Error creating user:", error.message);
         res.status(500).json({ message: error.message });
     }
 }
@@ -193,7 +179,6 @@ const setNewPassword = async (req, res) => {
 
         res.status(200).json({ message: "Password has been successfully updated." });
     } catch (error) {
-        console.error("Error resetting password:", error.message);
         res.status(500).json({ message: "Server error. Please try again later." });
     }
 };

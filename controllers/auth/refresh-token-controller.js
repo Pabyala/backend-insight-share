@@ -6,7 +6,6 @@ const handleRefreshToken = async (req, res) => {
 
     // check if the JWT cookie is present
     if(!cookies?.jwt) return res.sendStatus(401); 
-    console.log("Refresh cookie :", cookies)
 
     const refreshToken = cookies.jwt;
 

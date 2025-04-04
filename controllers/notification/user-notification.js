@@ -40,8 +40,6 @@ const getNotification = async (req, res) => {
                 ]
             });
 
-            // const filteredNotifications = notifications.filter(notification => notification.postId !== null);
-
             // Keep notifications that either have a postId or are of type 'follow'
             const filteredNotifications = notifications.filter(
                 (notification) => notification.postId !== null || notification.type === 'follow'
@@ -49,7 +47,6 @@ const getNotification = async (req, res) => {
 
         res.status(200).json({ notifications: filteredNotifications });
     } catch (error) {
-        console.error("Error fetching notifications:", error);
         res.status(500).json({ message: "An error occurred while retrieving notifications." });
     }
 };
@@ -80,7 +77,6 @@ const markOneNotification = async (req, res) => {
 
         res.status(200).json({ message: "Notification marked as read.", notification });
     } catch (error) {
-        console.error("Error marking notification as read:", error);
         res.status(500).json({ message: "An error occurred while updating the notification." });
     }
 }
@@ -105,7 +101,6 @@ const markAllReadNotification = async (req, res) => {
 
         res.status(200).json({ message: "All notifications marked as read." });
     } catch (error) {
-        console.error("Error marking notifications as read:", error);
         res.status(500).json({ message: "An error occurred while updating notifications." });
     }
 };

@@ -1,7 +1,7 @@
-const Notification = require("../../model/notification-model"); // Import the Notification model
+const Notification = require("../../model/notification-model"); 
 
 const getNotifications = async (req, res) => {
-    const { userId } = req.params; // Get the user ID from request params
+    const { userId } = req.params; 
 
     if (!userId) {
         return res.status(400).json({ message: "User ID is required." });
@@ -39,8 +39,6 @@ const getNotifications = async (req, res) => {
                 ]
             });
 
-            // const filteredNotifications = notifications.filter(notification => notification.postId !== null);
-
             // Keep notifications that either have a postId or are of type 'follow'
             const filteredNotifications = notifications.filter(
                 (notification) => notification.postId !== null || notification.type === 'follow'
@@ -48,7 +46,6 @@ const getNotifications = async (req, res) => {
 
         res.status(200).json({ notifications: filteredNotifications });
     } catch (error) {
-        console.error("Error fetching notifications:", error);
         res.status(500).json({ message: "An error occurred while retrieving notifications." });
     }
 };

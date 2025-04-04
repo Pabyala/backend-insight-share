@@ -17,17 +17,16 @@ const signinUser = async (req, res) => {
         const accessToken = jwt.sign(
             { "id": foundUser._id, _id: foundUser._id, "username": foundUser.username },
             process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: '15m' } // for testing purpose only the 30s. i will change that to 10m to 15m
+            { expiresIn: '15m' } 
         );
         const refreshToken = jwt.sign(
             { "id": foundUser._id, "username": foundUser.username },
             process.env.REFRESH_TOKEN_SECRET,
-            { expiresIn: '1d' } // change this to 1d
+            { expiresIn: '1d' } 
         );
         // saving refreshToken with current user
         foundUser.refreshToken = refreshToken;
         await foundUser.save();
-        // console.log("Auth: ", result)
 
         // creates secure cookie with refresh token
         res.cookie('jwt', refreshToken, { 
