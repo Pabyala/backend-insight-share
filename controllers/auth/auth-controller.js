@@ -9,7 +9,7 @@ const signinUser = async (req, res) => {
     if (!email || !password ) return res.status(400).json({ message: 'Email and password are required.'})
     
     const foundUser = await Users.findOne({ email }).exec();
-    if (!foundUser) return res.status(401).json({ message: 'Username not registered.' });
+    if (!foundUser) return res.status(401).json({ message: 'Email not registered.' });
 
     const isMath = await bcrypt.compare(password, foundUser.password);
     if (isMath) {
