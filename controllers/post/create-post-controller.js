@@ -233,6 +233,7 @@ const getAllYourPosts = async (req, res) => {
 
     try {
         const posts = await Posts.find({ authorId: userId })
+            .sort({ createdAt: -1 })
             .populate({
                 path: "authorId",
                 select: "username firstName middleName lastName avatarUrl coverPhotoUrl",
