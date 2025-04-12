@@ -1,12 +1,15 @@
 ## **Insight Share (Bankend Repo)**
 
 #### Description:
-"Insight Share" is an application where users can create posts, comment on them, and react with different reactions (like, heart, wow, angry). This repository contains the backend code for the app, which handles user authentication, post management, comments, and reactions.
+"Insight Share" is an application where users can create posts, comment on them, and react with different reactions (fire, hands up, sad, heart).
 
 #### Current Features:
 - User Authentication
-- Posts
+- Change password
+- Post
+- Saved post
 - Comments
+- Reply to comment
 - Reactions
 - Profile Management
 - Profile photo
@@ -15,6 +18,6 @@
 - Notification
 
 #### Development Status:
-Work in Progress
+Deployed.
 
 > _**Note:** This is a personal project created for learning and development purposes._
